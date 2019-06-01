@@ -1,21 +1,45 @@
 #!/bin/sh -x
 
-# location of zone files (default: /home/{user}/work/zonefiles )
+# check with whereis for dirname and realpath
+dirnamepath=`whereis -b dirname | awk '{print $2}'`
+realpathpath=`whereis -b realpath | awk '{print $2}'`
+
+# location of zone files (default: ${HOME}/work/zonefiles )
 zonefilesdir="${HOME}/work/zonefiles"
 # this project directory (default: this directory)
-autodnssecdir="$(dirname $0)"
-# location of dnssec keys (default: /home/{user}/work/dnssec)
+autodnssecdir=""
+if [ -x "$dirnamepath" ] && [ -x "$realpathpath" ]
+then \
+  realpathcurrentscript=`realpath $0`
+  autodnssecdir=`dirname $realpathcurrentscript`
+fi
+# location of dnssec keys (default: ${HOME}/work/dnssec)
 dnssecfilesdir="${HOME}/work/dnssec"
 
 while [ $# -ge 1 ]
 do \
   case "$1" in
     "-z") shift
-          zonefilesdir="$1" ;;
-    "-a") shift 
-          autodnssecdir="$1" ;;
+          if [ $# -ge 1 ]
+          then \
+            zonefilesdir="$1"
+          else \
+            break
+          fi ;;
+    "-a") shift
+          if [ $# -ge 1 ]
+          then \
+            autodnssecdir="$1"
+          else \
+            break
+          fi ;;
     "-d") shift 
-          dnssecfilesdir="$1" ;;
+          if [ $# -ge 1 ]
+          then \
+            dnssecfilesdir="$1"
+          else \
+            break
+          fi ;;
   esac
   shift
 done
