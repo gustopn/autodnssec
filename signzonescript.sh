@@ -1,18 +1,43 @@
-if [ -z "$1" ]
-then \
-  echo "Error: You have to provide key directory as first argument, none provided, giving up!"
-  exit 1
-fi
+#!/bin/sh -x
 
-if [ ! -d "$1" ]
-then \
-  echo "Error: You have to provide key directory as first argument, no directory provided, giving up!"
-  exit 2
-fi
+zonefilesdir=""
+dnssecfilesdir=""
 
-for i in *.zone
+while [ $# -ge 1 ]
 do \
-  for j in "$1"/K"${i%.zone}"*
+  case "$1" in
+    "-z") shift
+          if [ $# -ge 1 ]
+          then \
+            zonefilesdir="$1"
+          else \
+            break
+          fi ;;
+    "-d") shift 
+          if [ $# -ge 1 ]
+          then \
+            dnssecfilesdir="$1"
+          else \
+            break
+          fi ;;
+  esac
+  shift
+done
+
+for i in "$zonefilesdir" "$dnssecfilesdir"
+do \
+  if [ ! -d "$i" ]
+  then \
+    echo "Path $i is not a directory, exitting."
+    exit 1
+  fi
+done
+
+for i in "$zonefilesdir"/*.zone
+do \
+  zoneidentifiername=`echo $i | awk -F'/' '{print $NF}'`
+  zoneidentifiername="${zoneidentifiername%.zone}"
+  for j in "${dnssecfilesdir}/K${zoneidentifiername}"*".key"
     do \
       if grep '(ksk)' "$j" >/dev/null
       then \
