@@ -66,6 +66,6 @@ then \
       exit 1
     fi
   done
-#  "${autodnssecdir}/signzonescript.sh" "$dnssecfilesdir"
+  "${autodnssecdir}/signzonescript.sh" -d "$dnssecfilesdir" -z "$zonefilesdir"
 #  svn --quiet commit -m `date +%F` &&  svn --quiet up && svn diff -r PREV --diff-cmd diff -x -w
 fi
