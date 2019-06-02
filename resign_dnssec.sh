@@ -67,5 +67,6 @@ then \
     fi
   done
   "${autodnssecdir}/signzonescript.sh" -d "$dnssecfilesdir" -z "$zonefilesdir"
+  sudo nsd-control reload
 #  svn --quiet commit -m `date +%F` &&  svn --quiet up && svn diff -r PREV --diff-cmd diff -x -w
 fi
