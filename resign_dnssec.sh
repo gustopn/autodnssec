@@ -1,5 +1,16 @@
 #!/bin/sh -x
 
+trigger_nsd="no"
+
+reload_nsd_live_zones() {
+  sudoexecpath=$(whereis sudo | awk '{print $2}')
+  nsdcontrolexecpath=$(whereis nsd-control | awk '{print $2}')
+  if [ -x "$sudoexecpath" ] && [ -x "$nsdcontrolexecpath" ]
+  then \
+    "$sudoexecpath" "$nsdcontrolexecpath" reload
+  fi
+}
+
 # check with whereis for dirname and realpath
 dirnamepath=`whereis -b dirname | awk '{print $2}'`
 realpathpath=`whereis -b realpath | awk '{print $2}'`
@@ -40,6 +51,7 @@ do \
           else \
             break
           fi ;;
+    "-u") trigger_nsd="yes" ;;
   esac
   shift
 done
@@ -67,6 +79,9 @@ then \
     fi
   done
   "${autodnssecdir}/signzonescript.sh" -d "$dnssecfilesdir" -z "$zonefilesdir"
-  sudo nsd-control reload
+  if [ "$trigger_nsd" = "yes" ]
+  then \
+    reload_nsd_live_zones
+  fi
 #  svn --quiet commit -m `date +%F` &&  svn --quiet up && svn diff -r PREV --diff-cmd diff -x -w
 fi
