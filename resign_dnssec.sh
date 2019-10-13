@@ -3,11 +3,10 @@
 trigger_nsd="no"
 
 reload_nsd_live_zones() {
-  sudoexecpath=$(whereis sudo | awk '{print $2}')
   nsdcontrolexecpath=$(whereis nsd-control | awk '{print $2}')
-  if [ -x "$sudoexecpath" ] && [ -x "$nsdcontrolexecpath" ]
+  if [ -x "$nsdcontrolexecpath" ]
   then \
-    "$sudoexecpath" "$nsdcontrolexecpath" reload
+    "$nsdcontrolexecpath" reload
   fi
 }
 
