@@ -78,7 +78,7 @@ def __increment_soa_of_record(current_soa_record):
         new_soa_record_output += soa_record_part[0]
   return new_soa_record_output
 
-def __update_zonefile(zonefile_content):
+def __update_zonefile(zonefile_content, action_tuple):
   zonefile_records_list = []
   new_zonefile_content = ""
   is_whitespace = re.compile("\s")
@@ -161,7 +161,6 @@ def __get_zone_filename(interpreted_arguments):
   return zone_filename
 
 def __read_zonefile_content(zone_filename):
-  zone_content = None
   zonefile = open(zone_filename, "r")
   zone_content = zonefile.read()
   zonefile.close()
@@ -181,5 +180,5 @@ if __name__ == "__main__":
     if zone_filename is not None:
       print("Found filename: " + zone_filename)
   if zone_filename is not None:
-    zone_content = __read_zonefile_content(zone_filename)
-    updated_zone_content = __update_zonefile(zone_content)
+    original_zone_content = __read_zonefile_content(zone_filename)
+    updated_zone_content = __update_zonefile(original_zone_content, None)
