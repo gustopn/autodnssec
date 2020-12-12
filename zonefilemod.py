@@ -124,8 +124,18 @@ def __print_arguments_help():
   print("""
     -f    Filename to modify (must be ending with .zone)
     -v    Be verbose (show JSON dumps)
+    -a    Append record (-a DNS_RECORD_CONTENT) NOT IMPLEMENTED
+    -i    Insert record (-i DNS_RECORD_CONTENT) WORK IN PROGRESS
+    -u    Update record (-u DNS_RECORD_CONTENT) NOT IMPLEMENTED
+    -d    Delete record (-d DNS_RECORD_IDENT) WORK IN PROGRESS
+    -s    Select record (-s DNS_RECORD_IDENT) NOT IMPLEMENTED
+
+NOTE: I do not know yet the difference between Append and Insert.
+I will need to define it yet. But the idea is to use Insert for
+replacing if existing and Append to insert another one if existing.
+Update then needs a scope argument like WHERE from SQL.
+Most important ones are Insert and Delete, since I will need those.
   """)
-  return None
 
 def __interpret_arguments(arguments_list):
   interpreted_arguments_dict = {}
