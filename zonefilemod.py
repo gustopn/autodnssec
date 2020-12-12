@@ -142,6 +142,13 @@ def __interpret_arguments(arguments_list):
   interpreted_arguments_dict["verbose"] = False
   filename_follows = False
   record_follows = ""
+  record_argument_map = {
+    "-s": "select",
+    "-i": "insert",
+    "-a": "append",
+    "-d": "delete",
+    "-u": "update"
+  }
   while len(arguments_list) > 0:
     current_argument = arguments_list.pop(0)
     if record_follows:
@@ -158,30 +165,10 @@ def __interpret_arguments(arguments_list):
     elif current_argument == "-v":
       interpreted_arguments_dict["verbose"] = True
       continue
-    elif current_argument == "-s":
+    elif current_argument in [ "-s", "-u", "-a", "-d", "-i" ]:
       if "record" not in interpreted_arguments_dict:
         interpreted_arguments_dict["record"] = []
-      record_follows = "select"
-      continue
-    elif current_argument == "-u":
-      if "record" not in interpreted_arguments_dict:
-        interpreted_arguments_dict["record"] = []
-      record_follows = "update"
-      continue
-    elif current_argument == "-a":
-      if "record" not in interpreted_arguments_dict:
-        interpreted_arguments_dict["record"] = []
-      record_follows = "append"
-      continue
-    elif current_argument == "-d":
-      if "record" not in interpreted_arguments_dict:
-        interpreted_arguments_dict["record"] = []
-      record_follows = "delete"
-      continue
-    elif current_argument == "-i":
-      if "record" not in interpreted_arguments_dict:
-        interpreted_arguments_dict["record"] = []
-      record_follows = "insert"
+      record_follows = record_argument_map[current_argument]
       continue
     else:
       if "unknown" not in interpreted_arguments_dict:
