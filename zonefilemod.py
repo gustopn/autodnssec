@@ -195,6 +195,9 @@ def __read_zonefile_content(zone_filename):
 
 if __name__ == "__main__":
   interpreted_arguments = None
+  action_tuple_list = None
+  original_zone_content = None
+  updated_zone_content = None
   command_line_arguments = sys.argv[1:]
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
@@ -206,9 +209,17 @@ if __name__ == "__main__":
     print(json.dumps(interpreted_arguments, indent=2))
     if zone_filename is not None:
       print("Found filename: " + zone_filename)
+  if "record" in interpreted_arguments:
+    action_tuple_list = interpreted_arguments["record"]
   if zone_filename is not None:
     original_zone_content = __read_zonefile_content(zone_filename)
-    updated_zone_content = __update_zonefile(original_zone_content, None)
+    if action_tuple_list is not None and type(action_tuple_list) is list:
+      current_zone_content = original_zone_content
+      for action_tuple in action_tuple_list:
+        current_zone_content = __update_zonefile(current_zone_content, action_tuple)
+      updated_zone_content = current_zone_content
+    else:
+      updated_zone_content = __update_zonefile(original_zone_content, None)
   if interpreted_arguments["verbose"]:
     print("ORIGINAL:")
     print(original_zone_content)
