@@ -78,7 +78,7 @@ def __increment_soa_of_record(current_soa_record):
         new_soa_record_output += soa_record_part[0]
   return new_soa_record_output
 
-def __incr_soa_of_zonefile(zonefile_content):
+def __update_zonefile(zonefile_content):
   zonefile_records_list = []
   new_zonefile_content = ""
   is_whitespace = re.compile("\s")
@@ -119,12 +119,67 @@ def __incr_soa_of_zonefile(zonefile_content):
       new_zonefile_content += zonefile_record
   return new_zonefile_content
 
-if __name__ == "__main__":
-  zonefile = open("/tmp/zonetest.txt", "r")
-  zonefile_content = zonefile.read()
-  new_zonefile_content = __incr_soa_of_zonefile(zonefile_content)
+def __print_arguments_help():
+  print("No command line arguments provided")
+  print("""
+    -f    Filename to modify (must be ending with .zone)
+    -v    Be verbose (show JSON dumps)
+  """)
+  return None
+
+def __interpret_arguments(arguments_list):
+  interpreted_arguments_dict = {}
+  interpreted_arguments_dict["verbose"] = False
+  filename_follows = False
+  while len(arguments_list) > 0:
+    current_argument = arguments_list.pop(0)
+    if filename_follows:
+      interpreted_arguments_dict["file"] = current_argument
+      filename_follows = False
+      continue
+    if current_argument == "-f":
+      filename_follows = True
+      continue
+    elif current_argument == "-v":
+      interpreted_arguments_dict["verbose"] = True
+      continue
+    else:
+      if "unknown" not in interpreted_arguments_dict:
+        interpreted_arguments_dict["unknown"] = []
+      interpreted_arguments_dict["unknown"].append( current_argument )
+  return interpreted_arguments_dict
+
+def __get_zone_filename(interpreted_arguments):
+  zone_filename = None
+  if "file" in interpreted_arguments:
+    possible_zone_filename = interpreted_arguments["file"]
+    partitioned_zone_filename = str(possible_zone_filename).rpartition(".")
+    if partitioned_zone_filename[1] and partitioned_zone_filename[2] == "zone":
+      if os.path.exists(possible_zone_filename):
+        if os.path.isfile(possible_zone_filename):
+          zone_filename = os.path.abspath( possible_zone_filename )
+  return zone_filename
+
+def __read_zonefile_content(zone_filename):
+  zone_content = None
+  zonefile = open(zone_filename, "r")
+  zone_content = zonefile.read()
   zonefile.close()
-  print("OLD:")
-  print(zonefile_content)
-  print("NEW:")
-  print(new_zonefile_content)
+  return zone_content
+
+if __name__ == "__main__":
+  interpreted_arguments = None
+  command_line_arguments = sys.argv[1:]
+  if command_line_arguments:
+    interpreted_arguments = __interpret_arguments(command_line_arguments)
+  else:
+    __print_arguments_help()
+    sys.exit(1)
+  zone_filename = __get_zone_filename( interpreted_arguments )
+  if interpreted_arguments["verbose"]:
+    print(json.dumps(interpreted_arguments, indent=2))
+    if zone_filename is not None:
+      print("Found filename: " + zone_filename)
+  if zone_filename is not None:
+    zone_content = __read_zonefile_content(zone_filename)
+    updated_zone_content = __update_zonefile(zone_content)
