@@ -209,3 +209,8 @@ if __name__ == "__main__":
   if zone_filename is not None:
     original_zone_content = __read_zonefile_content(zone_filename)
     updated_zone_content = __update_zonefile(original_zone_content, None)
+  if interpreted_arguments["verbose"]:
+    print("ORIGINAL:")
+    print(original_zone_content)
+    print("UPDATED:")
+    print(updated_zone_content)
