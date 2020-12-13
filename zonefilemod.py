@@ -144,7 +144,7 @@ def __update_zonefile(zonefile_content, action_tuple):
     print("-------------- Adding record: --------------")
     print( action_tuple[1] )
     print("-------------- End of added record. --------------\n")
-    new_zonefile_content += action_tuple[1]
+    new_zonefile_content += action_tuple[1] + "\n"
   return new_zonefile_content
 
 def __print_arguments_help():
