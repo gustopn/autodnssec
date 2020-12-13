@@ -102,6 +102,14 @@ def __update_zonefile(zonefile_content, action_tuple):
   for zonefile_record in zonefile_records_list:
     zonefile_record_parts_list = zonefile_record.split()
     zone_record_ident = zonefile_record_parts_list[0]
+    action_tuple_ident = None
+    if type(action_tuple) is tuple:
+      if action_tuple[0] in [ "append", "insert", "update" ]:
+        action_tuple_ident = action_tuple[1].split()
+        if len(action_tuple_ident) > 0:
+          action_tuple_ident = action_tuple_ident[0]
+        else:
+          action_tuple_ident = None
     following_typedef = False
     found_soa_record = False
     for zonefile_record_part in zonefile_record_parts_list:
@@ -121,9 +129,17 @@ def __update_zonefile(zonefile_content, action_tuple):
         print("-------------- Deleting record: --------------")
         print( zonefile_record + "\n" )
         print("-------------- End of deleted record. --------------\n")
+      elif action_tuple[0] == "select" and zone_record_ident == action_tuple[1]:
+        print("-------------- Selected record: --------------")
+        print( zonefile_record + "\n" )
+        print("-------------- End of selected record. --------------\n")
+      elif action_tuple[0] == "insert" and zone_record_ident == action_tuple_ident:
+        print("-------------- Overwriting record: --------------")
+        print( zonefile_record + "\n" )
+        print("-------------- End of overwritten record. --------------\n")
       else:
         new_zonefile_content += zonefile_record
-  if action_tuple[0] == "insert":
+  if action_tuple[0] in [ "insert", "append" ]:
     new_zonefile_content += action_tuple[1]
   return new_zonefile_content
 
@@ -132,11 +148,11 @@ def __print_arguments_help():
   print("""
     -f    Filename to modify (must be ending with .zone)
     -v    Be verbose (show JSON dumps)
-    -a    Append record (-a DNS_RECORD_CONTENT) NOT IMPLEMENTED
+    -a    Append record (-a DNS_RECORD_CONTENT)
     -i    Insert record (-i DNS_RECORD_CONTENT)
     -u    Update record (-u DNS_RECORD_CONTENT) NOT IMPLEMENTED
     -d    Delete record (-d DNS_RECORD_IDENT)
-    -s    Select record (-s DNS_RECORD_IDENT) NOT IMPLEMENTED
+    -s    Select record (-s DNS_RECORD_IDENT)
 
 NOTE: I do not know yet the difference between Append and Insert.
 I will need to define it yet. But the idea is to use Insert for
