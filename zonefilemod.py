@@ -263,8 +263,8 @@ def __create_config_file(config_file_path):
     if not os.path.isdir(dnssec_keys_dir) or not os.path.exists(dnssec_keys_dir):
       print("Wrong answer, skipping")
       return None
-    config_object["zones"] = zone_files_dir
-    config_object["dnssec"] = dnssec_keys_dir
+    config_object["zones"]  = os.path.abspath(zone_files_dir)
+    config_object["dnssec"] = os.path.abspath(dnssec_keys_dir)
     config_file = open(config_file_path, "w")
     config_file.write( json.dumps(config_object, indent=2) )
     config_file.close()
@@ -290,6 +290,7 @@ if __name__ == "__main__":
   if config_params is not None:
     print("Found config file with configuration:")
     print( json.dumps( config_params, indent=2 ) )
+    # 
   command_line_arguments = sys.argv[1:]
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
