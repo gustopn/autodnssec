@@ -221,6 +221,12 @@ def __read_zonefile_content(zone_filename):
   zonefile.close()
   return zone_content
 
+def __write_zonefile_content(zone_filename, updated_zone_content):
+  zonefile = open(zone_filename, "w")
+  zonefile.write(updated_zone_content)
+  zonefile.close()
+  return None
+
 if __name__ == "__main__":
   interpreted_arguments = None
   action_tuple_list = None
@@ -253,3 +259,9 @@ if __name__ == "__main__":
     print(original_zone_content)
     print("UPDATED:")
     print(updated_zone_content)
+  if zone_filename is not None:
+    current_timestamp = datetime.datetime.now().strftime("%s")
+    backup_zone_filename = zone_filename + "-" + str( current_timestamp )
+    if not os.path.exists( backup_zone_filename ):
+      __write_zonefile_content( backup_zone_filename, original_zone_content )
+      __write_zonefile_content( zone_filename, updated_zone_content )
