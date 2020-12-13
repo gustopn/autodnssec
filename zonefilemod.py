@@ -271,6 +271,12 @@ def __create_config_file(config_file_path):
     return config_object
   return None
 
+def __find_all_zone_files(config_params):
+  pass # TODO
+
+def __find_dnssec_key_for_domain(domain):
+  pass # TODO
+
 if __name__ == "__main__":
   interpreted_arguments = None
   action_tuple_list = None
