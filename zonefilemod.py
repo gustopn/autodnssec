@@ -101,6 +101,7 @@ def __update_zonefile(zonefile_content, action_tuple):
       zonefile_records_list.append(zonefile_line)
   for zonefile_record in zonefile_records_list:
     zonefile_record_parts_list = zonefile_record.split()
+    zone_record_ident = zonefile_record_parts_list[0]
     following_typedef = False
     found_soa_record = False
     for zonefile_record_part in zonefile_record_parts_list:
@@ -116,7 +117,14 @@ def __update_zonefile(zonefile_content, action_tuple):
     if found_soa_record:
       new_zonefile_content += __increment_soa_of_record(zonefile_record)
     else:
-      new_zonefile_content += zonefile_record
+      if action_tuple[0] == "delete" and zone_record_ident == action_tuple[1]:
+        print("-------------- Deleting record: --------------")
+        print( zonefile_record + "\n" )
+        print("-------------- End of deleted record. --------------\n")
+      else:
+        new_zonefile_content += zonefile_record
+  if action_tuple[0] == "insert":
+    new_zonefile_content += action_tuple[1]
   return new_zonefile_content
 
 def __print_arguments_help():
@@ -125,9 +133,9 @@ def __print_arguments_help():
     -f    Filename to modify (must be ending with .zone)
     -v    Be verbose (show JSON dumps)
     -a    Append record (-a DNS_RECORD_CONTENT) NOT IMPLEMENTED
-    -i    Insert record (-i DNS_RECORD_CONTENT) WORK IN PROGRESS
+    -i    Insert record (-i DNS_RECORD_CONTENT)
     -u    Update record (-u DNS_RECORD_CONTENT) NOT IMPLEMENTED
-    -d    Delete record (-d DNS_RECORD_IDENT) WORK IN PROGRESS
+    -d    Delete record (-d DNS_RECORD_IDENT)
     -s    Select record (-s DNS_RECORD_IDENT) NOT IMPLEMENTED
 
 NOTE: I do not know yet the difference between Append and Insert.
