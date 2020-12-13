@@ -251,6 +251,7 @@ def __create_config_file(config_file_path):
   config_object = {}
   if sys.stdout.isatty():
     print("You do not seem to have a config file, do you want to create one? (Y)")
+    print("Would create a config file in: " + config_file_path)
     answer = input("Your Answer: ")
     if answer != "Y":
       return None
@@ -286,12 +287,15 @@ if __name__ == "__main__":
         config_params = __read_config_file(config_file_path)
     else:
       config_params = __create_config_file(config_file_path)
+  if config_params is not None:
+    print("Found config file with configuration:")
+    print( json.dumps( config_params, indent=2 ) )
   command_line_arguments = sys.argv[1:]
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
   else:
     __print_arguments_help()
-    sys.exit(1)
+    sys.exit(1) # TODO: Here this will be a problem soon!
   zone_filename = __get_zone_filename( interpreted_arguments )
   if interpreted_arguments["verbose"]:
     print(json.dumps(interpreted_arguments, indent=2))
