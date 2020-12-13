@@ -127,19 +127,23 @@ def __update_zonefile(zonefile_content, action_tuple):
     else:
       if action_tuple[0] == "delete" and zone_record_ident == action_tuple[1]:
         print("-------------- Deleting record: --------------")
-        print( zonefile_record + "\n" )
+        print( zonefile_record )
         print("-------------- End of deleted record. --------------\n")
       elif action_tuple[0] == "select" and zone_record_ident == action_tuple[1]:
         print("-------------- Selected record: --------------")
-        print( zonefile_record + "\n" )
+        print( zonefile_record )
         print("-------------- End of selected record. --------------\n")
+        new_zonefile_content += zonefile_record
       elif action_tuple[0] == "insert" and zone_record_ident == action_tuple_ident:
         print("-------------- Overwriting record: --------------")
-        print( zonefile_record + "\n" )
+        print( zonefile_record )
         print("-------------- End of overwritten record. --------------\n")
       else:
         new_zonefile_content += zonefile_record
   if action_tuple[0] in [ "insert", "append" ]:
+    print("-------------- Adding record: --------------")
+    print( action_tuple[1] )
+    print("-------------- End of added record. --------------\n")
     new_zonefile_content += action_tuple[1]
   return new_zonefile_content
 
