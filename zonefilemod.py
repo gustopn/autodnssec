@@ -227,11 +227,65 @@ def __write_zonefile_content(zone_filename, updated_zone_content):
   zonefile.close()
   return None
 
+def __validate_home_dir():
+  home_dir = os.environ["HOME"]
+  home_dir = os.path.abspath(home_dir)
+  if os.path.exists(home_dir) and os.path.isdir(home_dir):
+    if home_dir[0] == "/":
+      home_dir_parts_list = home_dir[1:].split("/")
+      home_dir_first_part = home_dir_parts_list.pop(0)
+      if home_dir_first_part == "usr":
+        if home_dir_parts_list.pop(0) == "home":
+          return home_dir
+      if home_dir_first_part == "home":
+        return home_dir
+  return None
+
+def __read_config_file(config_file_path):
+  config_file = open(config_file_path, "r")
+  config_object = json.loads( config_file.read() )
+  config_file.close()
+  return config_object
+
+def __create_config_file(config_file_path):
+  config_object = {}
+  if sys.stdout.isatty():
+    print("You do not seem to have a config file, do you want to create one? (Y)")
+    answer = input("Your Answer: ")
+    if answer != "Y":
+      return None
+    zone_files_dir = input("OK, where do I find zone files? Path, please: ")
+    if not os.path.isdir(zone_files_dir) or not os.path.exists(zone_files_dir):
+      print("Wrong answer, skipping")
+      return None
+    dnssec_keys_dir = input("Well, we also need dnssec keys. Path, please: ")
+    if not os.path.isdir(dnssec_keys_dir) or not os.path.exists(dnssec_keys_dir):
+      print("Wrong answer, skipping")
+      return None
+    config_object["zones"] = zone_files_dir
+    config_object["dnssec"] = dnssec_keys_dir
+    config_file = open(config_file_path, "w")
+    config_file.write( json.dumps(config_object, indent=2) )
+    config_file.close()
+    return config_object
+  return None
+
 if __name__ == "__main__":
   interpreted_arguments = None
   action_tuple_list = None
   original_zone_content = None
   updated_zone_content = None
+  config_params = None
+  home_dir = __validate_home_dir()
+  config_file = ".dnszonefilemod.conf"
+  config_file_path = None
+  if home_dir is not None:
+    config_file_path = str.join("/", [ home_dir, config_file ] )
+    if os.path.exists(config_file_path):
+      if os.path.isfile(config_file_path):
+        config_params = __read_config_file(config_file_path)
+    else:
+      config_params = __create_config_file(config_file_path)
   command_line_arguments = sys.argv[1:]
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
