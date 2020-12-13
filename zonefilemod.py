@@ -321,7 +321,7 @@ if __name__ == "__main__":
   if config_params is not None:
     print("Found config file with configuration:")
     print( json.dumps( config_params, indent=2 ) )
-    # 
+    print( json.dumps( __find_all_zone_files(config_params), indent=2) )
   command_line_arguments = sys.argv[1:]
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
