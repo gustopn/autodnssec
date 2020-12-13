@@ -271,11 +271,36 @@ def __create_config_file(config_file_path):
     return config_object
   return None
 
+def __get_zone_file_paths_from_dir(dirinstance, dircounter):
+  if not dircounter > 0:
+    return None
+  zonesfilepath_list = []
+  with os.scandir(dirinstance) as dircontent:
+    for dircontentinstance in dircontent:
+      if dircontentinstance.is_dir():
+        new_zone_file_paths = __get_zone_file_paths_from_dir(dircontentinstance.path, dircounter - 1)
+        if new_zone_file_paths is not None and type(new_zone_file_paths) is list:
+          zonesfilepath_list += new_zone_file_paths
+      if dircontentinstance.is_file():
+        if "zone" == dircontentinstance.name.rpartition(".")[2]:
+          zonesfilepath_list.append( dircontentinstance.path )
+  if len(zonesfilepath_list) > 0:
+    return zonesfilepath_list
+  return None
+
 def __find_all_zone_files(config_params):
-  pass # TODO
+  if "zones" not in config_params:
+    return None
+  zonesdir = config_params["zones"]
+  if os.path.exists(zonesdir) and os.path.isdir(zonesdir):
+    return __get_zone_file_paths_from_dir(zonesdir, 2)
+  return None
 
 def __find_dnssec_key_for_domain(domain):
-  pass # TODO
+  if "zones" not in config_params or "dnssec" not in config_params:
+    return None
+  zonesdir  = config_params["zones"]
+  dnssecdir = config_params["dnssec"]
 
 if __name__ == "__main__":
   interpreted_arguments = None
