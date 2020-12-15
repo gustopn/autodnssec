@@ -125,26 +125,30 @@ def __update_zonefile(zonefile_content, action_tuple):
     if found_soa_record:
       new_zonefile_content += __increment_soa_of_record(zonefile_record)
     else:
-      if action_tuple[0] == "delete" and zone_record_ident == action_tuple[1]:
-        print("-------------- Deleting record: --------------")
-        print( zonefile_record )
-        print("-------------- End of deleted record. --------------\n")
-      elif action_tuple[0] == "select" and zone_record_ident == action_tuple[1]:
-        print("-------------- Selected record: --------------")
-        print( zonefile_record )
-        print("-------------- End of selected record. --------------\n")
-        new_zonefile_content += zonefile_record
-      elif action_tuple[0] == "insert" and zone_record_ident == action_tuple_ident:
-        print("-------------- Overwriting record: --------------")
-        print( zonefile_record )
-        print("-------------- End of overwritten record. --------------\n")
+      if type(action_tuple) is tuple:
+        if action_tuple[0] == "delete" and zone_record_ident == action_tuple[1]:
+          print("-------------- Deleting record: --------------")
+          print( zonefile_record )
+          print("-------------- End of deleted record. --------------\n")
+        elif action_tuple[0] == "select" and zone_record_ident == action_tuple[1]:
+          print("-------------- Selected record: --------------")
+          print( zonefile_record )
+          print("-------------- End of selected record. --------------\n")
+          new_zonefile_content += zonefile_record
+        elif action_tuple[0] == "insert" and zone_record_ident == action_tuple_ident:
+          print("-------------- Overwriting record: --------------")
+          print( zonefile_record )
+          print("-------------- End of overwritten record. --------------\n")
+        else:
+          pass
       else:
         new_zonefile_content += zonefile_record
-  if action_tuple[0] in [ "insert", "append" ]:
-    print("-------------- Adding record: --------------")
-    print( action_tuple[1] )
-    print("-------------- End of added record. --------------\n")
-    new_zonefile_content += action_tuple[1] + "\n"
+  if type(action_tuple) is tuple:
+    if action_tuple[0] in [ "insert", "append" ]:
+      print("-------------- Adding record: --------------")
+      print( action_tuple[1] )
+      print("-------------- End of added record. --------------\n")
+      new_zonefile_content += action_tuple[1] + "\n"
   return new_zonefile_content
 
 def __print_arguments_help():
@@ -206,6 +210,8 @@ def __interpret_arguments(arguments_list):
 
 def __get_zone_filename(interpreted_arguments):
   zone_filename = None
+  if type(interpreted_arguments) is not dict:
+    return None
   if "file" in interpreted_arguments:
     possible_zone_filename = interpreted_arguments["file"]
     partitioned_zone_filename = str(possible_zone_filename).rpartition(".")
