@@ -376,8 +376,8 @@ def __rewrite_zonefile(zone_path, action_tuple_list, verbose_bool):
     __write_zonefile_content( zone_path, updated_zone_content )
 
 def __finally_sign_zone(config_params, zone_path, verbose_bool):
-  domain = __get_domain_from_zonefilepath(zone_path)
-  zone_keys = __find_dnssec_key_for_domain(config_params, domain)
+  domain = __get_domain_from_zonefilepath( zone_path )
+  zone_keys = __find_dnssec_key_for_domain( config_params, domain )
   salt = ( binascii.b2a_hex( os.urandom(12) ) ).decode()
   if type(zone_keys) is dict:
     if verbose_bool:
@@ -416,6 +416,7 @@ if __name__ == "__main__":
     if "record" in interpreted_arguments:
       action_tuple_list = interpreted_arguments["record"]
     __rewrite_zonefile( zone_path, action_tuple_list, verbose_bool )
+    __finally_sign_zone( config_params, zone_path, verbose_bool )
   else:
     if zone_files_list is not None:
       for zone_path_instance in zone_files_list:
