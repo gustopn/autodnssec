@@ -157,6 +157,7 @@ def __print_arguments_help():
   print("No command line arguments provided")
   print("""
     -f    Filename to modify (must be ending with .zone)
+    -z    Zone to modify (domain to increment) - NOT IMPLEMENTED
     -v    Be verbose (show JSON dumps)
     -a    Append record (-a DNS_RECORD_CONTENT)
     -i    Insert record (-i DNS_RECORD_CONTENT)
@@ -169,6 +170,10 @@ I will need to define it yet. But the idea is to use Insert for
 replacing if existing and Append to insert another one if existing.
 Update then needs a scope argument like WHERE from SQL.
 Most important ones are Insert and Delete, since I will need those.
+
+BUGS: This script does not yet work automatically with certbot.
+In the near future it should look for ENV vars of certbot and
+add/remove records and resign affected zone accordingly. TODO
   """)
 
 def __interpret_arguments(arguments_list):
