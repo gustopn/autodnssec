@@ -7,6 +7,7 @@ import datetime
 import re
 import json
 import binascii
+import subprocess
 
 def __increment_soa(current_soa):
   current_formatted_date = datetime.datetime.now().strftime("%F")
@@ -380,14 +381,20 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
   zone_keys = __find_dnssec_key_for_domain( config_params, domain )
   salt = ( binascii.b2a_hex( os.urandom(12) ) ).decode()
   if type(zone_keys) is dict:
+    zsk = zone_keys["zsk"]
+    ksk = zone_keys["ksk"]
     if verbose_bool:
       print("Going to sign with following parameters:")
       print(json.dumps( {
         "domain" : domain,
-        "keys" : zone_keys,
+        "zone" : zone_path,
+        "zsk"  : zsk,
+        "ksk"  : ksk,
         "salt" : salt
       }, indent=2 ))
-    pass
+    signzonebin = "/usr/local/bin/ldns-signzone"
+    command = [ signzonebin, "-n", "-s", salt, zone_path, zsk, ksk ]
+    subprocess.Popen(command)
   return None
 
 if __name__ == "__main__":
