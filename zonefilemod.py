@@ -140,7 +140,7 @@ def __update_zonefile(zonefile_content, action_tuple):
           print( zonefile_record )
           print("-------------- End of overwritten record. --------------\n")
         else:
-          pass
+          new_zonefile_content += zonefile_record
       else:
         new_zonefile_content += zonefile_record
   if type(action_tuple) is tuple:
