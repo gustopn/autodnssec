@@ -6,6 +6,7 @@ import time
 import datetime
 import re
 import json
+import binascii
 
 def __increment_soa(current_soa):
   current_formatted_date = datetime.datetime.now().strftime("%F")
@@ -302,11 +303,43 @@ def __find_all_zone_files(config_params):
     return __get_zone_file_paths_from_dir(zonesdir, 2)
   return None
 
-def __find_dnssec_key_for_domain(domain):
-  if "zones" not in config_params or "dnssec" not in config_params:
+def __get_domain_from_zonefilepath(zone_path):
+  zonefile_name = zone_path.rpartition("/")[2]
+  zone_name = zonefile_name.rpartition(".")[0]
+  if zone_name:
+    return zone_name
+  return None
+
+def __find_dnssec_key_for_domain(config_params, domain):
+  keys_dict = {}
+  if "dnssec" not in config_params:
     return None
-  zonesdir  = config_params["zones"]
   dnssecdir = config_params["dnssec"]
+  if os.path.isdir(dnssecdir):
+    with os.scandir(dnssecdir) as dnssecdircontent:
+      for dnssecdirinstance in dnssecdircontent:
+        if not dnssecdirinstance.is_file():
+          continue
+        required_begin = "K" + domain + "."
+        if required_begin != str(dnssecdirinstance.name).partition("+")[0]:
+          continue
+        if "key" != str(dnssecdirinstance.name).rpartition(".")[2]:
+          continue
+        fh = open(dnssecdirinstance.path, "r")
+        co = fh.read()
+        fh.close()
+        co = co.rpartition(";")[2]
+        co = co.partition("{")[2]
+        co = co.partition("}")[0]
+        co = co.partition("(")[2]
+        co = co.partition(")")[0]
+        if co == "ksk":
+          keys_dict["ksk"] = str(dnssecdirinstance.path).rpartition(".")[0]
+        if co == "zsk":
+          keys_dict["zsk"] = str(dnssecdirinstance.path).rpartition(".")[0]
+  if "ksk" in keys_dict and "zsk" in keys_dict:
+    return keys_dict
+  return None
 
 def __read_configuration():
   home_dir = __validate_home_dir()
@@ -342,6 +375,21 @@ def __rewrite_zonefile(zone_path, action_tuple_list, verbose_bool):
     __write_zonefile_content( backup_zone_path, original_zone_content )
     __write_zonefile_content( zone_path, updated_zone_content )
 
+def __finally_sign_zone(config_params, zone_path, verbose_bool):
+  domain = __get_domain_from_zonefilepath(zone_path)
+  zone_keys = __find_dnssec_key_for_domain(config_params, domain)
+  salt = binascii.b2a_hex(os.urandom(12))
+  if type(zone_keys) is dict:
+    if verbose_bool:
+      print("Going to sign with following parameters:")
+      print(json.dumps( {
+        "domain" : domain,
+        "keys" : zone_keys,
+        "salt" : salt
+      }, indent=2 ))
+    pass
+  return None
+
 if __name__ == "__main__":
   command_line_arguments = sys.argv[1:]
   interpreted_arguments = None
@@ -360,6 +408,8 @@ if __name__ == "__main__":
     if verbose_bool:
       print("Found zones:")
       print(json.dumps(zone_files_list, indent=2))
+      print("Configuration parameters:")
+      print(json.dumps(config_params, indent=2))
   zone_path = __get_zone_filename( interpreted_arguments )
   if zone_path is not None:
     action_tuple_list = None
@@ -370,4 +420,4 @@ if __name__ == "__main__":
     if zone_files_list is not None:
       for zone_path_instance in zone_files_list:
         __rewrite_zonefile( zone_path_instance, None, verbose_bool )
-
+        __finally_sign_zone( config_params, zone_path_instance, verbose_bool )
