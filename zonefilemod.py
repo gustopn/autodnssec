@@ -302,56 +302,66 @@ def __find_dnssec_key_for_domain(domain):
   zonesdir  = config_params["zones"]
   dnssecdir = config_params["dnssec"]
 
-if __name__ == "__main__":
-  interpreted_arguments = None
-  action_tuple_list = None
-  original_zone_content = None
-  updated_zone_content = None
-  config_params = None
+def __read_configuration():
   home_dir = __validate_home_dir()
-  config_file = ".dnszonefilemod.conf"
-  config_file_path = None
   if home_dir is not None:
-    config_file_path = str.join("/", [ home_dir, config_file ] )
+    config_file_path = home_dir + "/.dnszonefilemod.conf"
     if os.path.exists(config_file_path):
       if os.path.isfile(config_file_path):
-        config_params = __read_config_file(config_file_path)
+        return __read_config_file(config_file_path)
     else:
-      config_params = __create_config_file(config_file_path)
-  if config_params is not None:
-    print("Found config file with configuration:")
-    print( json.dumps( config_params, indent=2 ) )
-    print( json.dumps( __find_all_zone_files(config_params), indent=2) )
+      return __create_config_file(config_file_path)
+  return None
+
+def __rewrite_zonefile(zone_path, action_tuple_list, verbose_bool):
+  current_timestamp = datetime.datetime.now().strftime("%s")
+  backup_zone_path = zone_path + "-" + str( current_timestamp )
+  updated_zone_content = None
+  original_zone_content = __read_zonefile_content(zone_path)
+  if action_tuple_list is not None and type(action_tuple_list) is list:
+    current_zone_content = original_zone_content
+    for action_tuple in action_tuple_list:
+      current_zone_content = __update_zonefile(current_zone_content, action_tuple)
+    updated_zone_content = current_zone_content
+  else:
+    updated_zone_content = __update_zonefile(original_zone_content, None)
+  if verbose_bool:
+    print( str.join( "\n", [
+        "ORIGINAL:",
+        original_zone_content,
+        "UPDATED:",
+        updated_zone_content 
+      ] ) )
+  if not os.path.exists( backup_zone_path ):
+    __write_zonefile_content( backup_zone_path, original_zone_content )
+    __write_zonefile_content( zone_path, updated_zone_content )
+
+if __name__ == "__main__":
   command_line_arguments = sys.argv[1:]
+  interpreted_arguments = None
+  verbose_bool = False
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
-  else:
+    verbose_bool = interpreted_arguments["verbose"]
+  if verbose_bool:
     __print_arguments_help()
-    sys.exit(1) # TODO: Here this will be a problem soon!
-  zone_filename = __get_zone_filename( interpreted_arguments )
-  if interpreted_arguments["verbose"]:
+    print("Interpreted arguments:")
     print(json.dumps(interpreted_arguments, indent=2))
-    if zone_filename is not None:
-      print("Found filename: " + zone_filename)
-  if "record" in interpreted_arguments:
-    action_tuple_list = interpreted_arguments["record"]
-  if zone_filename is not None:
-    original_zone_content = __read_zonefile_content(zone_filename)
-    if action_tuple_list is not None and type(action_tuple_list) is list:
-      current_zone_content = original_zone_content
-      for action_tuple in action_tuple_list:
-        current_zone_content = __update_zonefile(current_zone_content, action_tuple)
-      updated_zone_content = current_zone_content
-    else:
-      updated_zone_content = __update_zonefile(original_zone_content, None)
-  if interpreted_arguments["verbose"]:
-    print("ORIGINAL:")
-    print(original_zone_content)
-    print("UPDATED:")
-    print(updated_zone_content)
-  if zone_filename is not None:
-    current_timestamp = datetime.datetime.now().strftime("%s")
-    backup_zone_filename = zone_filename + "-" + str( current_timestamp )
-    if not os.path.exists( backup_zone_filename ):
-      __write_zonefile_content( backup_zone_filename, original_zone_content )
-      __write_zonefile_content( zone_filename, updated_zone_content )
+  config_params = __read_configuration()
+  zone_files_list = None
+  if config_params is not None:
+    zone_files_list = __find_all_zone_files(config_params)
+    if verbose_bool:
+      print("Found zones:")
+      print(json.dumps(zone_files_list, indent=2))
+  zone_path = __get_zone_filename( interpreted_arguments )
+  if zone_path is not None:
+    action_tuple_list = None
+    if "record" in interpreted_arguments:
+      action_tuple_list = interpreted_arguments["record"]
+    __rewrite_zonefile( zone_path, action_tuple_list, verbose_bool )
+  else:
+    if zone_files_list is not None:
+      for zone_path_instance in zone_files_list:
+        __rewrite_zonefile( zone_path_instance, None, verbose_bool )
+
