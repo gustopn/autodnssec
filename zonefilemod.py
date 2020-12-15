@@ -378,7 +378,7 @@ def __rewrite_zonefile(zone_path, action_tuple_list, verbose_bool):
 def __finally_sign_zone(config_params, zone_path, verbose_bool):
   domain = __get_domain_from_zonefilepath(zone_path)
   zone_keys = __find_dnssec_key_for_domain(config_params, domain)
-  salt = binascii.b2a_hex(os.urandom(12))
+  salt = ( binascii.b2a_hex( os.urandom(12) ) ).decode()
   if type(zone_keys) is dict:
     if verbose_bool:
       print("Going to sign with following parameters:")
