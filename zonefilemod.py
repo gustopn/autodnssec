@@ -386,20 +386,41 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
   zone_keys = __find_dnssec_key_for_domain( config_params, domain )
   salt = ( binascii.b2a_hex( os.urandom(12) ) ).decode()
   if type(zone_keys) is dict:
-    zsk = zone_keys["zsk"]
-    ksk = zone_keys["ksk"]
     if verbose_bool:
       print("Going to sign with following parameters:")
       print(json.dumps( {
         "domain" : domain,
         "zone" : zone_path,
-        "zsk"  : zsk,
-        "ksk"  : ksk,
+        "zsk"  : zone_keys["zsk"],
+        "ksk"  : zone_keys["ksk"],
         "salt" : salt
       }, indent=2 ))
-    signzonebin = "/usr/local/bin/ldns-signzone"
-    command = [ signzonebin, "-n", "-s", salt, zone_path, zsk, ksk ]
-    subprocess.Popen(command)
+    signzonecommand = [ 
+        "/usr/local/bin/ldns-signzone",
+        "-n",
+        "-s",
+        salt,
+        zone_path,
+        zone_keys["zsk"],
+        zone_keys["ksk"]
+      ]
+    starttime = time.time()
+    signzoneprocess = subprocess.Popen(signzonecommand, stdout=subprocess.PIPE)
+    if verbose_bool:
+      print("Running signzone process:")
+      print( time.time() - starttime )
+    signzoneprocess.wait()
+    if verbose_bool:
+      print( time.time() - starttime )
+      print( signzoneprocess.stdout.read() )
+    nsdcontrolcommand = [ "/usr/sbin/nsd-control", "reload", domain ]
+    starttime = time.time()
+    nsdcontrolprocess = subprocess.Popen(nsdcontrolcommand, stdout=subprocess.PIPE)
+    nsdcontrolprocess.wait()
+    if verbose_bool:
+      print("Running NSD control process:")
+      print( time.time() - starttime )
+      print( nsdcontrolprocess.stdout.read() )
   return None
 
 if __name__ == "__main__":
