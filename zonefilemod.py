@@ -412,7 +412,7 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
     signzoneprocess.wait()
     if verbose_bool:
       print( str(int((time.time() - starttime) * 1000)) + " ms" )
-      print( signzoneprocess.stdout.read() )
+      print( signzoneprocess.stdout.read().decode() )
     nsdcontrolcommand = [ "/usr/sbin/nsd-control", "reload", domain ]
     starttime = time.time()
     nsdcontrolprocess = subprocess.Popen(nsdcontrolcommand, stdout=subprocess.PIPE)
@@ -420,7 +420,7 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
     if verbose_bool:
       print("Running NSD control process:")
       print( str(int((time.time() - starttime) * 1000)) + " ms" )
-      print( nsdcontrolprocess.stdout.read() )
+      print( nsdcontrolprocess.stdout.read().decode() )
   return None
 
 if __name__ == "__main__":
