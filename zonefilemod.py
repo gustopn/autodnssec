@@ -157,7 +157,7 @@ def __print_arguments_help():
   print("No command line arguments provided")
   print("""
     -f    Filename to modify (must be ending with .zone)
-    -z    Zone to modify (domain to increment) - NOT IMPLEMENTED
+    -z    Zone to modify (domain to increment)
     -v    Be verbose (show JSON dumps)
     -a    Append record (-a DNS_RECORD_CONTENT)
     -i    Insert record (-i DNS_RECORD_CONTENT)
@@ -180,6 +180,7 @@ def __interpret_arguments(arguments_list):
   interpreted_arguments_dict = {}
   interpreted_arguments_dict["verbose"] = False
   filename_follows = False
+  zone_follows = False
   record_follows = ""
   record_argument_map = {
     "-s": "select",
@@ -190,6 +191,10 @@ def __interpret_arguments(arguments_list):
   }
   while len(arguments_list) > 0:
     current_argument = arguments_list.pop(0)
+    if zone_follows:
+      interpreted_arguments_dict["zone"] = current_argument
+      zone_follows = False
+      continue
     if record_follows:
       interpreted_arguments_dict["record"].append( ( record_follows, current_argument ) )
       record_follows = ""
@@ -203,6 +208,9 @@ def __interpret_arguments(arguments_list):
       continue
     elif current_argument == "-v":
       interpreted_arguments_dict["verbose"] = True
+      continue
+    elif current_argument == "-z":
+      zone_follows = True
       continue
     elif current_argument in [ "-s", "-u", "-a", "-d", "-i" ]:
       if "record" not in interpreted_arguments_dict:
