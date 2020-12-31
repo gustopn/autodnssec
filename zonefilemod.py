@@ -374,6 +374,12 @@ def __read_configuration():
 def __rewrite_zonefile(zone_path, action_tuple_list, verbose_bool):
   current_timestamp = datetime.datetime.now().strftime("%s")
   backup_zone_path = zone_path + "-" + str( current_timestamp )
+  time_offset = 0
+  while os.path.exists( backup_zone_path ):
+    time_offset += 1
+    backup_zone_path = zone_path + "-" + str( int(current_timestamp) + time_offset )
+    if time_offset > 60:
+      break
   updated_zone_content = None
   original_zone_content = __read_zonefile_content(zone_path)
   if action_tuple_list is not None and type(action_tuple_list) is list:
