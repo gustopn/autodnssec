@@ -436,10 +436,37 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
       print( nsdcontrolprocess.stdout.read().decode() )
   return None
 
+def __run_certbot_identification(verbose_bool):
+  certbot_domain_action = None
+  certbot_domain = os.getenv("CERTBOT_DOMAIN")
+  certbot_validation = os.getenv("CERTBOT_VALIDATION")
+  certbot_remaining_challenges = os.getenv("CERTBOT_REMAINING_CHALLENGES")
+  certbot_all_domains = os.getenv("CERTBOT_ALL_DOMAINS")
+  if certbot_domain:
+    if verbose_bool:
+      print("CERTBOT identified, will do actions on zone: " + certbot_domain)
+    certbot_domain_action = {}
+    certbot_domain_action["zone"] = certbot_domain
+    if certbot_validation:
+      if verbose_bool:
+        print("CERTBOT validation identified: " + certbot_validation)
+      acme_string = "_acme-challenge  60 IN TXT " + certbot_validation
+      certbot_domain_action["action"] = ( "append", acme_string )
+    else:
+      if verbose_bool:
+        print("CERTBOT cleanup identified")
+      certbot_domain_action["action"] = ("delete", "_acme-challenge")
+    if verbose_bool:
+      print("Additional variables:")
+      print("Remaining challenges -> " + str(certbot_remaining_challenges) )
+      print("All domains -> " + str(certbot_all_domains) )
+  return certbot_domain_action
+
 if __name__ == "__main__":
   command_line_arguments = sys.argv[1:]
   interpreted_arguments = None
   verbose_bool = False
+  action_tuple_list = None
   if command_line_arguments:
     interpreted_arguments = __interpret_arguments(command_line_arguments)
     verbose_bool = interpreted_arguments["verbose"]
@@ -456,11 +483,17 @@ if __name__ == "__main__":
       print(json.dumps(zone_files_list, indent=2))
       print("Configuration parameters:")
       print(json.dumps(config_params, indent=2))
+  certbot_domain_action = __run_certbot_identification(verbose_bool)
   zone_path = __get_zone_filename( interpreted_arguments, zone_files_list )
   if zone_path is not None:
-    action_tuple_list = None
     if "record" in interpreted_arguments:
       action_tuple_list = interpreted_arguments["record"]
+    __rewrite_zonefile( zone_path, action_tuple_list, verbose_bool )
+    __finally_sign_zone( config_params, zone_path, verbose_bool )
+  elif certbot_domain_action is not None:
+    action_tuple_list = []
+    action_tuple_list.append( certbot_domain_action["action"] )
+    zone_path = __get_zone_filename( certbot_domain_action, zone_files_list )
     __rewrite_zonefile( zone_path, action_tuple_list, verbose_bool )
     __finally_sign_zone( config_params, zone_path, verbose_bool )
   else:
