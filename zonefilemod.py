@@ -417,6 +417,9 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
         zone_keys["zsk"],
         zone_keys["ksk"]
       ]
+    if not os.path.isfile(signzonecommand[0]):
+      print("ERROR: Can not sign, sign zone binary not found.")
+      return None
     starttime = time.time()
     signzoneprocess = subprocess.Popen(signzonecommand, stdout=subprocess.PIPE)
     if verbose_bool:
@@ -427,6 +430,9 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
       print( str(int((time.time() - starttime) * 1000)) + " ms" )
       print( signzoneprocess.stdout.read().decode() )
     nsdcontrolcommand = [ "/usr/sbin/nsd-control", "reload", domain ]
+    if not os.path.isfile(nsdcontrolcommand[0]):
+      print("ERROR: Can not publish, nsd-control binary not found.")
+      return None
     starttime = time.time()
     nsdcontrolprocess = subprocess.Popen(nsdcontrolcommand, stdout=subprocess.PIPE)
     nsdcontrolprocess.wait()
@@ -494,8 +500,11 @@ if __name__ == "__main__":
     action_tuple_list = []
     action_tuple_list.append( certbot_domain_action["action"] )
     zone_path = __get_zone_filename( certbot_domain_action, zone_files_list )
-    __rewrite_zonefile( zone_path, action_tuple_list, verbose_bool )
-    __finally_sign_zone( config_params, zone_path, verbose_bool )
+    if zone_path:
+      __rewrite_zonefile( zone_path, action_tuple_list, verbose_bool )
+      __finally_sign_zone( config_params, zone_path, verbose_bool )
+    else:
+      print("ERROR: Zone file not found, skipping.")
   else:
     if zone_files_list is not None:
       for zone_path_instance in zone_files_list:
