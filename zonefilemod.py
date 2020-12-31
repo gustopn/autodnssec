@@ -223,7 +223,7 @@ def __interpret_arguments(arguments_list):
       interpreted_arguments_dict["unknown"].append( current_argument )
   return interpreted_arguments_dict
 
-def __get_zone_filename(interpreted_arguments):
+def __get_zone_filename(interpreted_arguments, zone_files_list):
   zone_filename = None
   if type(interpreted_arguments) is not dict:
     return None
@@ -234,6 +234,11 @@ def __get_zone_filename(interpreted_arguments):
       if os.path.exists(possible_zone_filename):
         if os.path.isfile(possible_zone_filename):
           zone_filename = os.path.abspath( possible_zone_filename )
+  if "zone" in interpreted_arguments and zone_files_list is not None:
+    for zone_file in zone_files_list:
+      if zone_file.rpartition("/")[2] == str.join(".", [ interpreted_arguments["zone"], "zone" ] ):
+        zone_filename = zone_file
+        break
   return zone_filename
 
 def __read_zonefile_content(zone_filename):
@@ -451,7 +456,7 @@ if __name__ == "__main__":
       print(json.dumps(zone_files_list, indent=2))
       print("Configuration parameters:")
       print(json.dumps(config_params, indent=2))
-  zone_path = __get_zone_filename( interpreted_arguments )
+  zone_path = __get_zone_filename( interpreted_arguments, zone_files_list )
   if zone_path is not None:
     action_tuple_list = None
     if "record" in interpreted_arguments:
