@@ -452,26 +452,19 @@ def __run_certbot_identification(verbose_bool):
   certbot_domain_action = None
   certbot_domain = os.getenv("CERTBOT_DOMAIN")
   certbot_validation = os.getenv("CERTBOT_VALIDATION")
-  certbot_remaining_challenges = os.getenv("CERTBOT_REMAINING_CHALLENGES")
-  certbot_all_domains = os.getenv("CERTBOT_ALL_DOMAINS")
+  certbot_auth_output = os.getenv("CERTBOT_AUTH_OUTPUT")
   if certbot_domain:
-    if verbose_bool:
-      print("CERTBOT identified, will do actions on zone: " + certbot_domain)
+    print("Running certbot script for: " + certbot_domain)
     certbot_domain_action = {}
     certbot_domain_action["zone"] = certbot_domain
-    if certbot_validation:
-      if verbose_bool:
-        print("CERTBOT validation identified: " + certbot_validation)
-      acme_string = "_acme-challenge  60 IN TXT " + certbot_validation
-      certbot_domain_action["action"] = ( "append", acme_string )
-    else:
-      if verbose_bool:
-        print("CERTBOT cleanup identified")
+    if certbot_auth_output:
+      print("Cleaning up for: " + certbot_domain)
       certbot_domain_action["action"] = ("delete", "_acme-challenge")
-    if verbose_bool:
-      print("Additional variables:")
-      print("Remaining challenges -> " + str(certbot_remaining_challenges) )
-      print("All domains -> " + str(certbot_all_domains) )
+    elif certbot_validation:
+      print("Adding validation: " + certbot_validation + " for: " + certbot_domain)
+      certbot_domain_action["action"] = ( "append", "_acme-challenge 60 IN TXT " + certbot_validation )
+    else:
+      print("WARNING: No validation nor cleanup identified, skipping")
   return certbot_domain_action
 
 if __name__ == "__main__":
