@@ -164,6 +164,7 @@ def __print_arguments_help():
     -u    Update record (-u DNS_RECORD_CONTENT) NOT IMPLEMENTED
     -d    Delete record (-d DNS_RECORD_IDENT)
     -s    Select record (-s DNS_RECORD_IDENT)
+    -c    Cleanup Certbot
 
 NOTE: I do not know yet the difference between Append and Insert.
 I will need to define it yet. But the idea is to use Insert for
@@ -181,6 +182,7 @@ def __interpret_arguments(arguments_list):
   interpreted_arguments_dict["verbose"] = False
   filename_follows = False
   zone_follows = False
+  certbot_cleanup = False
   record_follows = ""
   record_argument_map = {
     "-s": "select",
@@ -209,6 +211,9 @@ def __interpret_arguments(arguments_list):
     elif current_argument == "-v":
       interpreted_arguments_dict["verbose"] = True
       continue
+    elif current_argument == "-c":
+      certbot_cleanup = True
+      continue
     elif current_argument == "-z":
       zone_follows = True
       continue
@@ -221,6 +226,7 @@ def __interpret_arguments(arguments_list):
       if "unknown" not in interpreted_arguments_dict:
         interpreted_arguments_dict["unknown"] = []
       interpreted_arguments_dict["unknown"].append( current_argument )
+  interpreted_arguments_dict["cleanup"] = certbot_cleanup
   return interpreted_arguments_dict
 
 def __get_zone_filename(interpreted_arguments, zone_files_list):
@@ -448,23 +454,21 @@ def __finally_sign_zone(config_params, zone_path, verbose_bool):
       print( nsdcontrolprocess.stdout.read().decode() )
   return None
 
-def __run_certbot_identification(verbose_bool):
+def __run_certbot_identification(interpreted_arguments):
   certbot_domain_action = None
   certbot_domain = os.getenv("CERTBOT_DOMAIN")
   certbot_validation = os.getenv("CERTBOT_VALIDATION")
-  certbot_auth_output = os.getenv("CERTBOT_AUTH_OUTPUT")
+  certbot_cleanup = interpreted_arguments["cleanup"]
   if certbot_domain:
     print("Running certbot script for: " + certbot_domain)
     certbot_domain_action = {}
     certbot_domain_action["zone"] = certbot_domain
-    if certbot_auth_output:
-      print("Cleaning up for: " + certbot_domain)
+    if certbot_cleanup:
+      print("Cleaning up for certbot for domain: " + certbot_domain)
       certbot_domain_action["action"] = ("delete", "_acme-challenge")
     elif certbot_validation:
       print("Adding validation: " + certbot_validation + " for: " + certbot_domain)
       certbot_domain_action["action"] = ( "append", "_acme-challenge 60 IN TXT " + certbot_validation )
-    else:
-      print("WARNING: No validation nor cleanup identified, skipping")
   return certbot_domain_action
 
 if __name__ == "__main__":
@@ -488,7 +492,7 @@ if __name__ == "__main__":
       print(json.dumps(zone_files_list, indent=2))
       print("Configuration parameters:")
       print(json.dumps(config_params, indent=2))
-  certbot_domain_action = __run_certbot_identification(verbose_bool)
+  certbot_domain_action = __run_certbot_identification(interpreted_arguments)
   zone_path = __get_zone_filename( interpreted_arguments, zone_files_list )
   if zone_path is not None:
     if "record" in interpreted_arguments:
