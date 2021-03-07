@@ -458,7 +458,9 @@ def __run_certbot_identification(interpreted_arguments):
   certbot_domain_action = None
   certbot_domain = os.getenv("CERTBOT_DOMAIN")
   certbot_validation = os.getenv("CERTBOT_VALIDATION")
-  certbot_cleanup = interpreted_arguments["cleanup"]
+  certbot_cleanup = False
+  if type(interpreted_arguments) is dict:
+    certbot_cleanup = interpreted_arguments["cleanup"]
   if certbot_domain:
     print("Running certbot script for: " + certbot_domain)
     certbot_domain_action = {}
