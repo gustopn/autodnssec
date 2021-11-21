@@ -353,6 +353,12 @@ def __find_dnssec_key_for_domain(config_params, domain):
         fh = open(dnssecdirinstance.path, "r")
         co = fh.read()
         fh.close()
+        if co.find("This is a key-signing key") > 0:
+          keys_dict["ksk"] = str(dnssecdirinstance.path).rpartition(".")[0]
+          continue
+        if co.find("This is a zone-signing key") > 0:
+          keys_dict["zsk"] = str(dnssecdirinstance.path).rpartition(".")[0]
+          continue
         co = co.rpartition(";")[2]
         co = co.partition("{")[2]
         co = co.partition("}")[0]
